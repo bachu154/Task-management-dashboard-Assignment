@@ -1,25 +1,27 @@
-import { configureStore, createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import { configureStore, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
+// ------------------- Types -------------------
 export interface Task {
-  id: string
-  title: string
-  description: string
-  category: "development" | "design" | "testing" | "bug"
-  priority: "low" | "medium" | "high"
-  dueDate: string
-  status: "todo" | "inprogress" | "done"
-  createdAt: string
+  id: string;
+  title: string;
+  description: string;
+  category: "development" | "design" | "testing" | "bug";
+  priority: "low" | "medium" | "high";
+  dueDate: string;
+  status: "todo" | "inprogress" | "done";
+  createdAt: string;
 }
 
 interface TaskState {
-  tasks: Task[]
+  tasks: Task[];
   filters: {
-    category: string
-    priority: string
-    dueDate: string
-  }
+    category: string;
+    priority: string;
+    dueDate: string;
+  };
 }
 
+// ------------------- Initial State -------------------
 const initialState: TaskState = {
   tasks: [],
   filters: {
@@ -27,8 +29,9 @@ const initialState: TaskState = {
     priority: "all",
     dueDate: "all",
   },
-}
+};
 
+// ------------------- Redux Slice -------------------
 const taskSlice = createSlice({
   name: "tasks",
   initialState,
@@ -38,57 +41,65 @@ const taskSlice = createSlice({
         ...action.payload,
         id: Date.now().toString(),
         createdAt: new Date().toISOString(),
-      }
-      state.tasks.push(newTask)
+      };
+      state.tasks.push(newTask);
     },
     moveTask: (state, action: PayloadAction<{ id: string; status: Task["status"] }>) => {
-      const task = state.tasks.find((t) => t.id === action.payload.id)
-      if (task) {
-        task.status = action.payload.status
-      }
+      const task = state.tasks.find((t) => t.id === action.payload.id);
+      if (task) task.status = action.payload.status;
     },
     deleteTask: (state, action: PayloadAction<string>) => {
-      state.tasks = state.tasks.filter((t) => t.id !== action.payload)
+      state.tasks = state.tasks.filter((t) => t.id !== action.payload);
     },
     setFilter: (state, action: PayloadAction<{ type: keyof TaskState["filters"]; value: string }>) => {
-      state.filters[action.payload.type] = action.payload.value
+      state.filters[action.payload.type] = action.payload.value;
     },
     loadTasks: (state, action: PayloadAction<Task[]>) => {
-      state.tasks = action.payload
+      state.tasks = action.payload;
     },
   },
-})
+});
 
-export const { addTask, moveTask, deleteTask, setFilter, loadTasks } = taskSlice.actions
+export const { addTask, moveTask, deleteTask, setFilter, loadTasks } = taskSlice.actions;
 
-const saveToLocalStorage = (state: any) => {
-  try {
-    localStorage.setItem("creative-upaay-dashboard", JSON.stringify(state))
-  } catch (error) {
-    console.error("Error saving to localStorage:", error)
+// ------------------- LocalStorage Helpers -------------------
+const LOCAL_STORAGE_KEY = "creative-upaay-dashboard";
+
+// Save state to localStorage safely
+const saveToLocalStorage = (state: TaskState) => {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.error("Error saving to localStorage:", error);
+    }
   }
-}
+};
 
-const loadFromLocalStorage = () => {
-  try {
-    const data = localStorage.getItem("creative-upaay-dashboard")
-    return data ? JSON.parse(data) : undefined
-  } catch (error) {
-    console.error("Error loading from localStorage:", error)
-    return undefined
+// Load state from localStorage safely
+const loadFromLocalStorage = (): TaskState | undefined => {
+  if (typeof window !== "undefined") {
+    try {
+      const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+      return data ? JSON.parse(data) as TaskState : undefined;
+    } catch (error) {
+      console.error("Error loading from localStorage:", error);
+    }
   }
-}
+  return undefined;
+};
 
+// ------------------- Configure Store -------------------
 export const store = configureStore({
-  reducer: {
-    tasks: taskSlice.reducer,
-  },
-  preloadedState: loadFromLocalStorage(),
-})
+  reducer: taskSlice.reducer,
+  preloadedState: loadFromLocalStorage() ?? initialState, // ensures valid initial state
+});
 
+// Subscribe to save state changes
 store.subscribe(() => {
-  saveToLocalStorage(store.getState())
-})
+  saveToLocalStorage(store.getState());
+});
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+// ------------------- Types for Dispatch & State -------------------
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
