@@ -2,7 +2,8 @@
 
 A modern, responsive Kanban-style task management dashboard built with React, Next.js, and TypeScript. This project was created as part of the Creative Upaay Full Stack Development assignment.
 
-![Task Management Dashboard](./public/images/dashboard.png)
+<img width="1920" height="977" alt="Screenshot (427)" src="https://github.com/user-attachments/assets/3347cfac-5701-4251-9e07-baf337105610" />
+
 
 ## 🚀 Features
 
